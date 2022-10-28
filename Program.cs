@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using 认证授权Demo;
 
@@ -14,7 +15,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddJwtBearer(
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
         JwtBearerDefaults.AuthenticationScheme,
         opt =>
         {
@@ -39,23 +40,31 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             return Task.CompletedTask;
         };
     }).AddScheme<AuthenticationSchemeOptions, CustomAuthHandler>(CustomAuthHandler.SchemeName, it => { });
-// builder.Services.AddAuthorization(options =>
-// {
-//     //基于角色组的策略
-//     options.AddPolicy("管理员", policy =>
-//     {
-//         policy.RequireRole("admin", "system");
-//         // 三种认证的结果都算进来
-//         policy.AuthenticationSchemes=new []{ JwtBearerDefaults.AuthenticationScheme,CustomAuthHandler.SchemeName,CookieAuthenticationDefaults.AuthenticationScheme};
-//     });
-//     //基于用户名
-//     options.AddPolicy("用户名是张三", policy => policy.RequireUserName("张三"));
-//     // 基于ClaimType
-//     options.AddPolicy("地址是中国", policy => policy.RequireClaim(ClaimTypes.Country,"中国"));
-//     //自定义值
-//     options.AddPolicy("自定义Claim要求", policy => policy.RequireClaim("date","2017-09-02"));
-//    
-// });
+
+builder.Services.AddSingleton<IAuthorizationHandler, MinimumAgeHandler>();
+
+builder.Services.AddAuthorization(options =>
+{
+    //基于角色组的策略
+    options.AddPolicy("管理员", policy =>
+    {
+        policy.RequireRole("admin", "system");
+        // 三种认证的结果都算进来
+        policy.AuthenticationSchemes=new []{ JwtBearerDefaults.AuthenticationScheme,CustomAuthHandler.SchemeName,CookieAuthenticationDefaults.AuthenticationScheme};
+    });
+     options.AddPolicy("自定义策略", policy =>
+     {
+         policy.Requirements.Add(new MinimumAgeRequirement(1));
+     });
+    
+    //基于用户名
+    options.AddPolicy("用户名是张三", policy => policy.RequireUserName("张三"));
+    // 基于ClaimType
+    options.AddPolicy("地址是中国", policy => policy.RequireClaim(ClaimTypes.Country,"中国"));
+    //自定义值
+    options.AddPolicy("自定义Claim要求", policy => policy.RequireClaim("date","2017-09-02"));
+   
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

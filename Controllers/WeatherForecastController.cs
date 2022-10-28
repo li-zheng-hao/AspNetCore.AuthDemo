@@ -63,9 +63,21 @@ public class WeatherForecastController : ControllerBase
 
         return res;
     }
-    [Authorize(Roles = "admin",AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+    [Authorize(Roles = "admin")]
     [HttpGet]
     public List<string> TestRole()
+    {
+        List<string> res = new List<string>();
+        foreach (var claim in HttpContext.User.Claims)
+        {
+            res.Add( claim.Type + "-" + claim.Value);
+        }
+
+        return res;
+    }
+    [Authorize(Policy = "自定义策略",AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+    [HttpGet]
+    public List<string> TestCustomPolicy()
     {
         List<string> res = new List<string>();
         foreach (var claim in HttpContext.User.Claims)
@@ -132,6 +144,7 @@ public class WeatherForecastController : ControllerBase
                 new Claim(ClaimTypes.Role,"admin"),
                 new Claim("Id","123"),
                 new Claim(ClaimTypes.Role,"user"),
+                new Claim(ClaimTypes.DateOfBirth,DateTime.Now.AddYears(-200).ToString()),
                 new Claim(ClaimTypes.Role,"superadmin"),
             };
  
