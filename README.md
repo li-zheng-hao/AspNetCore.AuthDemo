@@ -1,6 +1,8 @@
 # AspNetCore.AuthDemo
 Asp.net core webapi认证授权的所有案例
 
+文章链接： http://www.lizhenghao.site/2022/10/27/Asp-Net-Core%E6%9D%83%E9%99%90%E8%AE%A4%E8%AF%81/
+
 按授权分类：
 
 1. 基于角色授权
